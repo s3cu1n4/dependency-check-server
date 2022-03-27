@@ -1,0 +1,20 @@
+# 服务端配置项目
+DCServer:
+  listenPort: "5800"
+  aliyunlog: false
+
+# aliyunlog 配置为 true 时，请配置Aliyun日志服务的各项配置
+Aliyun:
+  endpoint: ""
+  ak: ""
+  sk: ""
+  Slsproject: ""
+  Logstore: ""
+
+
+
+# 客户端配置项目
+client:
+  serveraddr: "http://127.0.0.1:5800/uploadjar"
+  monitorjarpath: "./"
+  jartemppath: "/tmp/jar/"
