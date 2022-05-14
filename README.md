@@ -65,13 +65,13 @@ client:
 ```
 client 启动命令
 ```bash
-./linux_server -c conf/conf.yaml
+./linux_client -c conf/conf.yaml
    ```
 
 可使用nohup在后台运行，或者自行配置开机启动
 
 ```bash
-nohup ./linux_server -c conf/conf.yaml &
+nohup ./linux_client -c conf/conf.yaml &
    ```
 
 
