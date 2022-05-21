@@ -5,7 +5,7 @@ import (
 
 	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/aliyun/aliyun-log-go-sdk/producer"
-	"github.com/s3cu1n4/logs/logs"
+	"github.com/s3cu1n4/logs"
 )
 
 func Sendlog(loglist []map[string]string) {

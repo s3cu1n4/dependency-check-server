@@ -4,7 +4,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/s3cu1n4/logs/logs"
+	"github.com/s3cu1n4/logs"
 	"github.com/spf13/viper"
 )
 

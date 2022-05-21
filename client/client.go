@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/s3cu1n4/logs/logs"
+	"github.com/s3cu1n4/logs"
 	"gopkg.in/fsnotify.v1"
 )
 
@@ -90,40 +90,64 @@ func SendJar2Server(path string) {
 		if val == now {
 			//  1 秒内未更新过
 			if common.CheckJar(path) {
-				md5, err := common.Md5sum(path, 1)
+
+				filePtr, err := os.OpenFile(path, os.O_RDONLY, 0666)
 				if err != nil {
-					logs.Error("get file hash err:", err)
+					logs.Error("open file err:", err)
 					return
 				}
-				if _, ok := prjLog.Load(jarname); ok {
-					// hash 重复，不需要重复检测
-					logs.Info("jar包hash值重复:", jarname)
+				defer filePtr.Close()
+				// file, err := os.Stat(path)
+
+				info, err := common.Getfileinfo(path)
+				if err != nil {
 					return
-					// jarTemp.Store(jarname, now)
-				} else {
-					// prjLog[jarname] = md5
-					//未检测过的hash值，需要重新检测
-					dstPath := jarPATH + jarname
-					info, err := common.Getfileinfo(path)
-					if err != nil {
-						logs.Error("get file info err", err)
-						return
-					}
-					if info.Size() > 1024*500 {
-						n, err := common.CopyFile(dstPath, path, info.Size())
-						if err != nil {
-							logs.Error("copy file err", err)
-							return
-						}
-						err = common.SendFile(common.Conf.Client.ServerAddr, dstPath, jarname)
-						if err != nil {
-							return
-						}
-						logs.Infof("Filename: %s FileSize: %s send sucess", jarname, common.FormatFileSize(n))
-					}
-					prjLog.Store(jarname, md5)
 				}
 
+				// jar包小于500KB，不检测
+				if info.Size() > 1024*500 {
+					logs.Infof("jar包:%s , %s 小于500KB，不检测", info.Name(), common.FormatFileSize(info.Size()))
+					return
+				}
+
+				hash, err := common.ComputeFileSha1(filePtr, info.Size())
+				filePtr.Close()
+				if err != nil {
+					logs.Error("ComputeAliFileSha1 err:", err)
+					return
+				}
+
+				// hash 重复，不需要重复检测
+				if val, ok := prjLog.Load(jarname); ok {
+					if val.(string) == hash.Hash {
+						logs.Infof("jar: %s hash: %s 值重复:", jarname, hash.Hash)
+						return
+					}
+				}
+				// prjLog[jarname] = md5
+				// 未检测过的hash值，需要重新检测
+				dstPath := jarPATH + jarname
+				if err != nil {
+					logs.Error("get file info err", err)
+					return
+				}
+
+				n, err := common.CopyFile(dstPath, path, info.Size())
+				if err != nil {
+					logs.Error("copy file err", err)
+					return
+				}
+
+				err = common.SendFile(common.Conf.Client.ServerAddr, dstPath, jarname)
+				if err != nil {
+					return
+				}
+				logs.Infof("Filename: %s FileSize: %s file hash: %s send sucess", jarname, common.FormatFileSize(n), hash.Hash)
+
+				prjLog.Store(jarname, hash.Hash)
+
+			} else {
+				logs.Infof("%s is not jar", jarname)
 			}
 
 		} else {

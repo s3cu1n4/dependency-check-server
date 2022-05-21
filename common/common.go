@@ -16,7 +16,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/s3cu1n4/logs/logs"
+	"github.com/s3cu1n4/logs"
 	"pkg.re/essentialkaos/go-jar.v1"
 )
 
@@ -66,8 +66,12 @@ func Getfilepath(filepath string) (path string) {
 func CheckJar(fileName string) bool {
 	logs.Infof("jar type check: %s", fileName)
 	_, err := jar.ReadFile(fileName)
-	return err == nil
-
+	if err != nil {
+		logs.Info("jar type check err:", err)
+		return false
+	} else {
+		return true
+	}
 }
 
 func Getfileinfo(path string) (info os.FileInfo, err error) {

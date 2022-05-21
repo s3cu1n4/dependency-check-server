@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/s3cu1n4/logs/logs"
+	"github.com/s3cu1n4/logs"
 )
 
 var (
