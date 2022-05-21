@@ -1,3 +1,6 @@
 build/darwin_server
 
 build/darwin_client
+
+
+.DS_Store
