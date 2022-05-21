@@ -113,7 +113,7 @@ func SendJar2Server(path string) {
 				hash, err := common.ComputeFileSha1(filePtr, info.Size())
 				filePtr.Close()
 				if err != nil {
-					logs.Error("ComputeAliFileSha1 err:", err)
+					logs.Error("Compute FileSha1 err:", err)
 					return
 				}
 
@@ -134,7 +134,6 @@ func SendJar2Server(path string) {
 
 				n, err := common.CopyFile(dstPath, path, info.Size())
 				if err != nil {
-					logs.Error("copy file err", err)
 					return
 				}
 
@@ -142,12 +141,13 @@ func SendJar2Server(path string) {
 				if err != nil {
 					return
 				}
-				logs.Infof("Filename: %s FileSize: %s file hash: %s send sucess", jarname, common.FormatFileSize(n), hash.Hash)
 
+				logs.Infof("Filename: %s FileSize: %s file hash: %s send sucess", jarname, common.FormatFileSize(n), hash.Hash)
 				prjLog.Store(jarname, hash.Hash)
 
 			} else {
-				logs.Infof("%s is not jar", jarname)
+				logs.Infof(" %s is not jar", jarname)
+				return
 			}
 
 		} else {
