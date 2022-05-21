@@ -105,8 +105,8 @@ func SendJar2Server(path string) {
 				}
 
 				// jar包小于500KB，不检测
-				if info.Size() > 1024*500 {
-					logs.Infof("jar包:%s , %s 小于500KB，不检测", info.Name(), common.FormatFileSize(info.Size()))
+				if info.Size() < 1024*500 {
+					logs.Infof("jar包:%s , %s 小于500KB,不检测", info.Name(), common.FormatFileSize(info.Size()))
 					return
 				}
 
