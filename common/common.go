@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -185,4 +186,10 @@ func FormatFileSize(fileSize int64) (size string) {
 	} else { //if fileSize < (1024 * 1024 * 1024 * 1024 * 1024 * 1024)
 		return fmt.Sprintf("%.2fEB", float64(fileSize)/float64(1024*1024*1024*1024*1024))
 	}
+}
+
+func CheckFileIsOpen(filepath string) bool {
+	lsof := exec.Command("lsof", filepath)
+	_, err := lsof.CombinedOutput()
+	return err == nil
 }

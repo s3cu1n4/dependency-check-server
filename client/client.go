@@ -42,7 +42,6 @@ func (w *Watch) watchDir(dir string) {
 					}
 
 					if ev.Op&fsnotify.Write == fsnotify.Write {
-
 						if checkType(ev.Name) {
 							go SendJar2Server(ev.Name)
 						}
@@ -77,27 +76,40 @@ func (w *Watch) watchDir(dir string) {
 	})
 }
 
+// 检测jar包是否写完，
 func SendJar2Server(path string) {
+
 	jarname := common.Getfilepath(path)
 
 	now := time.Now().UnixNano()
+
 	if _, ok := jarTemp.LoadOrStore(jarname, now); ok {
 		jarTemp.Store(jarname, now)
+		return
+	} else {
+		//第一次收到文件写入信号
+		logs.Infof("start check jar: %s", jarname)
 	}
 
-	time.Sleep(1 * time.Second)
-	if val, ok := jarTemp.Load(jarname); ok {
-		if val == now {
-			//  1 秒内未更新过
-			if common.CheckJar(path) {
+	ticker := time.NewTicker(time.Second * 1)
+	count := 0
+	var filePtr *os.File
 
+	for range ticker.C {
+		//写入超时判断，超过60秒为超时，超时后该jar包不检测
+		if count > 60 {
+			return
+		}
+		count++
+		if !common.CheckFileIsOpen(path) {
+			logs.Infof("%s write sucess, start check", jarname)
+			jarTemp.Delete(jarname)
+			if common.CheckJar(path) {
 				filePtr, err := os.OpenFile(path, os.O_RDONLY, 0666)
 				if err != nil {
 					logs.Error("open file err:", err)
 					return
 				}
-				defer filePtr.Close()
-				// file, err := os.Stat(path)
 
 				info, err := common.Getfileinfo(path)
 				if err != nil {
@@ -144,16 +156,16 @@ func SendJar2Server(path string) {
 
 				logs.Infof("Filename: %s FileSize: %s file hash: %s send sucess", jarname, common.FormatFileSize(n), hash.Hash)
 				prjLog.Store(jarname, hash.Hash)
+				return
 
 			} else {
 				logs.Infof(" %s is not jar", jarname)
 				return
 			}
 
-		} else {
-			return
 		}
 	}
+	defer filePtr.Close()
 
 }
 
